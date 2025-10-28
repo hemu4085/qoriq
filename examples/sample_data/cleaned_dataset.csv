@@ -1,0 +1,4 @@
+opportunity_id,account_name,contact_name,contact_email,stage,amount_usd,expected_close,owner,notes
+1001,Acme Corp,Ava Smith,ava@acme.org,prospecting,12000,2025-09-10,Alex,Pilot success; wants SSO.
+1002,Globex Inc,Raj Patel,raj@globex.com,QUAL,35000,09/15/2025,Sam,"Budget approved by CFO, needs legal review."
+1003,ACME CORP,Duplicate Lead,dup@example.com,proposal,25000,10 Sep 2025,Alex,Duplicate record injected intentionally.

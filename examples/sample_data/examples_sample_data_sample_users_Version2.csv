@@ -1,0 +1,13 @@
+user_id,email,signup_date,age,country,bio
+1,jane.doe@example.com,2022-01-15,34,US,"Enjoys hiking and cats."
+2,john.smith@invalid,15/02/2021,28,US,"Loves soccer"
+3,,2020-12-31,45,UK,""
+4,alice@example.com,2021-07-08,NA,UK,"Engineer"
+5,bob@nowhere,2021-07-08,27,NA,"Data scientist"
+6,carol@example.org,2021-08-01,120,US,"Senior analyst"
+7,7_invalid_email,2021-09-01,30,US,""
+8,daniel@example.com,not_a_date,35,US,"Has duplicate id below"
+8,daniel@example.com,2021-10-01,35,US,"Duplicate id"
+9,eve@example.com,2021-11-01,29,CA,""
+10,frank@example.com,2021-11-05,28,CA,""
+11,constant_col@example.com,2021-11-07,28,CA,""

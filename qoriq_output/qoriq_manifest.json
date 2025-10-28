@@ -1,0 +1,229 @@
+{
+  "rows": 3,
+  "columns": 9,
+  "issues_count": 1,
+  "issues": [
+    {
+      "title": "Column 'expected_close' contains partially parseable dates",
+      "type": "date_partial_parse",
+      "severity": "medium",
+      "columns": [
+        "expected_close"
+      ],
+      "description": "Column 'expected_close' had 1/3 sample values parseable as dates.",
+      "suggested_fix": "Standardize date formats or provide parsing rules when importing."
+    }
+  ],
+  "data_quality": {
+    "components": {
+      "completeness": {
+        "score": 1.0,
+        "detail": {
+          "per_column": {
+            "opportunity_id": 1.0,
+            "account_name": 1.0,
+            "contact_name": 1.0,
+            "contact_email": 1.0,
+            "stage": 1.0,
+            "amount_usd": 1.0,
+            "expected_close": 1.0,
+            "owner": 1.0,
+            "notes": 1.0
+          },
+          "n_columns": 9
+        }
+      },
+      "consistency": {
+        "score": 0.5185,
+        "detail": {
+          "per_column": {
+            "opportunity_id": 1.0,
+            "account_name": 0.3333333333333333,
+            "contact_name": 0.3333333333333333,
+            "contact_email": 0.3333333333333333,
+            "stage": 0.3333333333333333,
+            "amount_usd": 1.0,
+            "expected_close": 0.3333333333333333,
+            "owner": 0.6666666666666666,
+            "notes": 0.3333333333333333
+          }
+        }
+      },
+      "semantic": {
+        "score": 0.8889,
+        "detail": {
+          "per_column": {
+            "opportunity_id": 1.0,
+            "account_name": 1.0,
+            "contact_name": 1.0,
+            "contact_email": 1.0,
+            "stage": 0.0,
+            "amount_usd": 1.0,
+            "expected_close": 1.0,
+            "owner": 1.0,
+            "notes": 1.0
+          }
+        }
+      },
+      "joinability": {
+        "score": 1.0,
+        "detail": {
+          "best_key": "opportunity_id",
+          "best_score": 1.0,
+          "candidates_examined": [
+            "opportunity_id"
+          ]
+        }
+      },
+      "safety": {
+        "score": 0.8519,
+        "detail": {
+          "per_column": {
+            "opportunity_id": {
+              "pii_count": 0,
+              "non_null": 3
+            },
+            "account_name": {
+              "pii_count": 0,
+              "non_null": 3
+            },
+            "contact_name": {
+              "pii_count": 0,
+              "non_null": 3
+            },
+            "contact_email": {
+              "pii_count": 3,
+              "non_null": 3
+            },
+            "stage": {
+              "pii_count": 0,
+              "non_null": 3
+            },
+            "amount_usd": {
+              "pii_count": 0,
+              "non_null": 3
+            },
+            "expected_close": {
+              "pii_count": 1,
+              "non_null": 3
+            },
+            "owner": {
+              "pii_count": 0,
+              "non_null": 3
+            },
+            "notes": {
+              "pii_count": 0,
+              "non_null": 3
+            }
+          },
+          "total_pii": 4,
+          "total_cells": 27
+        }
+      }
+    },
+    "overall_score": 0.8519,
+    "overall_percent": 85.19
+  },
+  "profile": {
+    "n_rows": 3,
+    "n_columns": 9,
+    "columns": {
+      "opportunity_id": {
+        "dtype": "int64",
+        "n_missing": 0,
+        "pct_missing": 0.0,
+        "min": 1001.0,
+        "max": 1003.0,
+        "mean": 1002.0,
+        "std": 1.0,
+        "n_unique": 3
+      },
+      "account_name": {
+        "dtype": "object",
+        "n_missing": 0,
+        "pct_missing": 0.0,
+        "top_values": {
+          "Acme Corp": 1,
+          "Globex Inc": 1,
+          "ACME CORP": 1
+        },
+        "n_unique": 3
+      },
+      "contact_name": {
+        "dtype": "object",
+        "n_missing": 0,
+        "pct_missing": 0.0,
+        "top_values": {
+          "Ava Smith": 1,
+          "Raj Patel": 1,
+          "Duplicate Lead": 1
+        },
+        "n_unique": 3
+      },
+      "contact_email": {
+        "dtype": "object",
+        "n_missing": 0,
+        "pct_missing": 0.0,
+        "top_values": {
+          "ava@acme.org": 1,
+          "raj@globex.com": 1,
+          "dup@example.com": 1
+        },
+        "n_unique": 3
+      },
+      "stage": {
+        "dtype": "object",
+        "n_missing": 0,
+        "pct_missing": 0.0,
+        "top_values": {
+          "prospecting": 1,
+          "QUAL": 1,
+          "proposal": 1
+        },
+        "n_unique": 3
+      },
+      "amount_usd": {
+        "dtype": "int64",
+        "n_missing": 0,
+        "pct_missing": 0.0,
+        "min": 12000.0,
+        "max": 35000.0,
+        "mean": 24000.0,
+        "std": 11532.562594670795,
+        "n_unique": 3
+      },
+      "expected_close": {
+        "dtype": "object",
+        "n_missing": 0,
+        "pct_missing": 0.0,
+        "top_values": {
+          "2025-09-10": 1,
+          "09/15/2025": 1,
+          "10 Sep 2025": 1
+        },
+        "n_unique": 3
+      },
+      "owner": {
+        "dtype": "object",
+        "n_missing": 0,
+        "pct_missing": 0.0,
+        "top_values": {
+          "Alex": 2,
+          "Sam": 1
+        },
+        "n_unique": 2
+      },
+      "notes": {
+        "dtype": "object",
+        "n_missing": 0,
+        "pct_missing": 0.0,
+        "top_values": {
+          "Pilot success; wants SSO.": 1,
+          "Budget approved by CFO, needs legal review.": 1,
+          "Duplicate record injected intentionally.": 1
+        },
+        "n_unique": 3
+      }
+    }
+  }
+}
