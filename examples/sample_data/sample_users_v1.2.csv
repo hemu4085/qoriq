@@ -1,0 +1,25 @@
+lead_id,name,company,contact_email,amount_usd,expected_close,state_code,notes
+1,Alice Johnson,Acme Corp,alice.johnson@acme.org,10000,2025-12-01,MA,original
+2,Bob Smith,Globex,bob.smith@globex.com,7500,2025-11-15,CT,original
+3,Carol Lee,Initech,carol.lee@initech.com,25000,2025-10-10,NY,original
+4,David Park,Acme Corp,ava@acme.org,25000,2025-09-30,MD,malformed email fixed; amount parsed
+5,Emma Chen,Globex,emma.chen@globex.com,5000,2025-08-15,RI,original
+6,Frank Zhao,Stark,frank.zhao@stark.io,1000,2025-07-20,CA,amount text parsed
+7,Gina Torres,Wayne,gina.torres@wayne.com,12000,2025-06-30,TX,original
+8,Hector Ruiz,Acme Corp,hector.ruiz@acme.org,9000,2025-05-21,FL,original
+9,Ivy Patel,Globex,ivy.patel@globex.com,15000,2025-04-18,PA,original
+10,Jason Kim,Initech,raj@globex.com,8000,2025-03-09,OH,malformed email fixed
+11,Karen O'Neil,Hooli,karen.oneil@hooli.com,3000,2025-02-14,IL,original
+12,Liam Brown,Acme Corp,liam.brown@acme.org,2500,2025-01-01,MA,amount parsed; state normalized
+13,Mia Lopez,Stark,mia.lopez@stark.io,10000,2024-12-31,CT,original
+14,Noah Davis,Wayne,noah.davis@wayne.com,0,2024-11-11,NY,zero amount
+15,Olivia Green,Initech,,5000,2024-10-01,MD,missing email
+16,Paul Young,Globex,paul.young@globex.com,1000,2024-09-09,RI,original
+17,Quinn Hart,Acme Corp,quinn.hart@acme.org,1000,2024-08-08,MA,amount parsed; state normalized
+18,Rachel Park,Globex,rachel.park@globex.com,4500,2024-07-07,CT,malformed email fixed
+19,Sam Lee,Initech,sam.lee@initech.com,2500,2024-06-06,NY,original
+20,Sam Lee,Initech,sam.lee@initech.com,2500,2024-06-06,NY,duplicate
+21,David Park,Acme Corp,ava@acme.org,25000,2025-09-30,MD,duplicate (same as lead 4)
+22,David Park,Acme Corp,ava@acme.org,25000,2025-09-30,MA,duplicate with state normalized
+23,Mia Lopez,Stark,mia.lopez@stark.io,10000,2024-12-31,CT,duplicate (same as lead 13)
+24,Olivia Green,Initech,,5000,2024-10-01,MA,duplicate (same as lead 15; state normalized)
