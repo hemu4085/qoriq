@@ -1,0 +1,9 @@
+id,name,email,expected_close,age,score,status,region
+1,Alice,alice@example.com,2024-01-15,30,95.5,active,North
+2,Bob,,2024-02-20,,88.0,active,
+3,Charlie,,2024-03-10,25,92.3,inactive,South
+4,Dave,dave@example.com,,40,87.5,active,
+5,Eve,eve@example.com,2024-05-05,35,91.0,inactive,East
+6,Frank,frank@example.com,2024-06-15,,78.5,active,
+7,Grace,,2024-07-20,45,95.0,active,West
+8,Henry,,,,88.5,inactive,
