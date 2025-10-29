@@ -1,0 +1,6 @@
+user_id,email,status,join_date,notes
+1,alice@example.com,active,2022-01-15,Good standing
+2,bob@example.com,pending,unclear_date,Under review
+3,carol@example.com,active,2021-12-31,
+4,dave@example.com,inactive,maybe_2022,Needs follow-up
+5,eve@example.com,active,2021-07-08,VIP member

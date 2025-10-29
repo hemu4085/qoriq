@@ -19,6 +19,33 @@ _email_re = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
 _phone_re = re.compile(r"\+?\d[\d\-\s]{6,}\d")
 _ssn_re = re.compile(r"^\d{3}-\d{2}-\d{4}$")
 
+
+def _normalize_missing_values(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Normalize missing values for consistent scoring.
+    
+    Converts empty strings and common null markers to np.nan to ensure
+    consistent completeness calculations. This prevents inconsistencies where
+    empty strings are counted as present values in some contexts.
+    
+    Args:
+        df: Input DataFrame
+    
+    Returns:
+        DataFrame with normalized missing values
+    """
+    df_normalized = df.copy()
+    
+    # For object/string columns, replace empty strings and common null markers with np.nan
+    for col in df_normalized.columns:
+        if df_normalized[col].dtype == 'object':
+            # Replace empty strings and common null markers
+            mask = df_normalized[col].isin(['', 'NA', 'N/A', 'null', 'None']) | df_normalized[col].isna()
+            df_normalized.loc[mask, col] = np.nan
+    
+    return df_normalized
+
+
 def _col_completeness(df: pd.DataFrame) -> Dict[str, float]:
     comp = {}
     n = len(df)
@@ -134,13 +161,17 @@ def _safety_score(df: pd.DataFrame) -> (float, Dict[str, Any]):
     return float(score), {"per_column": per_column, "total_pii": int(pii_cells), "total_cells": int(total_cells)}
 
 def compute_quality_scores(df: pd.DataFrame, profile: Dict[str, Any] = None, issues: List[Dict[str, Any]] = None) -> Dict[str, Any]:
-    per_col_completeness = _col_completeness(df)
+    # Normalize missing values for consistent scoring
+    # This ensures empty strings are treated as missing, preventing inconsistencies
+    df_normalized = _normalize_missing_values(df)
+    
+    per_col_completeness = _col_completeness(df_normalized)
     completeness, completeness_detail = _completeness_score(per_col_completeness)
 
-    consistency, consistency_detail = _consistency_score(df)
-    semantic, semantic_detail = _semantic_score(df)
-    joinability, joinability_detail = _joinability_score(df)
-    safety, safety_detail = _safety_score(df)
+    consistency, consistency_detail = _consistency_score(df_normalized)
+    semantic, semantic_detail = _semantic_score(df_normalized)
+    joinability, joinability_detail = _joinability_score(df_normalized)
+    safety, safety_detail = _safety_score(df_normalized)
 
     components = {
         "completeness": {"score": round(float(completeness), 4), "detail": completeness_detail},
