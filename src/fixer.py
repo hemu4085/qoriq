@@ -13,7 +13,6 @@ Returns:
 from typing import Dict, Any, List, Tuple, Optional
 import re
 import pandas as pd
-import numpy as np
 
 EMAIL_RE = re.compile(r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 
@@ -31,27 +30,61 @@ def _coerce_numeric_if_mostly(ser: pd.Series, threshold: float = 0.8) -> pd.Seri
         return coerced
     return ser
 
-def _standardize_dates_series(ser: pd.Series) -> pd.Series:
+def _safe_coerce_dates(ser: pd.Series) -> pd.Series:
     """
-    Parse a Series of date-like strings and return ISO date strings YYYY-MM-DD or None for unparsable.
+    Conservative date coercion helper that only converts successfully parsed dates.
+    
+    For values that cannot be parsed as dates, the original value is preserved
+    to avoid introducing NaN/NaT and reducing completeness scores.
+    
     Strategy:
-      - Use pd.to_datetime(..., infer_datetime_format=True, dayfirst=False)
-      - For unparsed entries, retry with dayfirst=True
-      - Keep result as YYYY-MM-DD strings or None
+      - Only process non-empty, non-null strings
+      - Attempt parse with dayfirst=False, then dayfirst=True
+      - If parsing succeeds, return YYYY-MM-DD string
+      - If parsing fails, preserve the original value
+      - Empty strings and null markers remain as-is for consistent handling
     """
     if ser is None or ser.shape[0] == 0:
         return ser
-    # normalize obvious null markers
-    raw = ser.replace({"": None, "NA": None, "N/A": None, "null": None, "None": None})
-    # attempt parse (dayfirst False)
-    parsed = pd.to_datetime(raw.astype(str), errors="coerce", infer_datetime_format=True, dayfirst=False)
-    # retry with dayfirst True for those not parsed
-    mask_not_parsed = parsed.isna() & raw.notna()
-    if mask_not_parsed.any():
-        parsed_alt = pd.to_datetime(raw[mask_not_parsed].astype(str), errors="coerce", infer_datetime_format=True, dayfirst=True)
-        parsed.loc[mask_not_parsed] = parsed_alt
-    # Final: return YYYY-MM-DD strings, keep None for NaT
-    return parsed.dt.strftime("%Y-%m-%d").where(parsed.notna(), None)
+    
+    # Create a copy to avoid modifying the original
+    result = ser.copy()
+    
+    # Only attempt to parse non-empty, non-null values
+    # Keep empty strings and null markers as-is for consistent scoring
+    mask_parseable = ser.notna() & (ser != "") & (ser != "NA") & (ser != "N/A") & (ser != "null") & (ser != "None")
+    
+    if not mask_parseable.any():
+        return result
+    
+    # Attempt parse with dayfirst=False
+    to_parse = ser[mask_parseable].astype(str)
+    parsed = pd.to_datetime(to_parse, errors="coerce", dayfirst=False)
+    
+    # For values that didn't parse, retry with dayfirst=True
+    mask_unparsed = parsed.isna()
+    if mask_unparsed.any():
+        parsed_alt = pd.to_datetime(to_parse[mask_unparsed], errors="coerce", dayfirst=True)
+        parsed.loc[mask_unparsed] = parsed_alt
+    
+    # Only update values that were successfully parsed
+    # Preserve original values for unparseable strings
+    mask_success = parsed.notna()
+    if mask_success.any():
+        # Get the indices where parsing succeeded
+        success_indices = mask_parseable[mask_parseable].index[mask_success]
+        result.loc[success_indices] = parsed[mask_success].dt.strftime("%Y-%m-%d")
+    
+    return result
+
+
+def _standardize_dates_series(ser: pd.Series) -> pd.Series:
+    """
+    Parse a Series of date-like strings and return ISO date strings YYYY-MM-DD or original value for unparsable.
+    
+    This is a wrapper around _safe_coerce_dates for backward compatibility.
+    """
+    return _safe_coerce_dates(ser)
 
 def _guess_date_like_columns(df: pd.DataFrame, issues: List[Dict[str, Any]]) -> List[str]:
     """
@@ -61,7 +94,6 @@ def _guess_date_like_columns(df: pd.DataFrame, issues: List[Dict[str, Any]]) -> 
       - OR have at least 5% parseable values (quick sniff)
     """
     date_cols = set()
-    lower_cols = [c.lower() for c in df.columns]
     for c in df.columns:
         lc = c.lower()
         if any(k in lc for k in ("date", "time", "timestamp", "close", "expected_close")):

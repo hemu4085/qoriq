@@ -1,0 +1,6 @@
+user_id,name,email,expected_close,notes
+1,Alice,alice@example.com,2024-01-15,Complete data
+2,Bob,bob@example.com,2024-02-20,
+3,Charlie,,invalid-date,Empty email
+4,Diana,diana@example.com,,Missing close date
+5,Eve,eve@example.com,2024-03-10,
