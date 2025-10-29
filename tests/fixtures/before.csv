@@ -1,0 +1,11 @@
+id,name,email,expected_close,age,status
+1,Alice,alice@example.com,2024-01-15,30,active
+2,Bob,bob@test.com,15/01/2024,32,active
+3,Charlie,charlie@test.com,invalid-date-text,25,active
+4,David,david@test.com,2024-03-20,35,active
+5,Eve,eve@example.com,2024-04-10,28,active
+6,Frank,frank@test.com,notadate,45,inactive
+7,Grace,grace@example.com,alsonotadate,29,active
+8,Henry,henry@test.com,stillnotadate,31,active
+9,Ivy,ivy@example.com,baddate,27,active
+10,Jack,jack@test.com,wrongdate,33,active
