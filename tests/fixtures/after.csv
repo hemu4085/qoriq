@@ -1,0 +1,5 @@
+id,date,comment
+1,2023-01-01,ok
+2,,missing-date
+3,not-a-date,maybe
+4,2024-12-31,ok
