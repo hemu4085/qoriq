@@ -3,8 +3,6 @@
 # use when coercing date-like columns. It deliberately preserves original
 # values when parsing fails so we don't increase null counts unexpectedly.
 import pandas as pd
-import numpy as np
-from typing import Any
 
 def _safe_coerce_dates(series: pd.Series) -> pd.Series:
     """

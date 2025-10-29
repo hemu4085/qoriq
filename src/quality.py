@@ -4,7 +4,7 @@
 # so completeness/safety counts are consistent.
 import pandas as pd
 import numpy as np
-from typing import Dict, Any
+from typing import Dict
 
 def _normalize_missing_values(df: pd.DataFrame) -> pd.DataFrame:
     """
