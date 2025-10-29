@@ -21,12 +21,12 @@ def diagnose(csv_path: str):
     # Use keep_default_na=False to preserve empty strings
     df = pd.read_csv(csv_path, keep_default_na=False, na_values=['NA', 'N/A', 'null', 'None'])
     
-    print(f"\nOriginal DataFrame:")
+    print("\nOriginal DataFrame:")
     print(df)
     print(f"\nShape: {df.shape}")
-    print(f"\nNull counts:")
+    print("\nNull counts:")
     print(df.isna().sum())
-    print(f"\nEmpty string counts:")
+    print("\nEmpty string counts:")
     for col in df.columns:
         empty_count = (df[col].astype(str) == '').sum()
         print(f"  {col}: {empty_count}")
@@ -50,17 +50,17 @@ def diagnose(csv_path: str):
     print(f"{'='*60}")
     cleaned_df, summary, changes_df, removed_df = generate_naive_clean_with_summary(df, issues)
     
-    print(f"\nCleaned DataFrame:")
+    print("\nCleaned DataFrame:")
     print(cleaned_df)
     print(f"\nShape: {cleaned_df.shape}")
-    print(f"\nNull counts after fixing:")
+    print("\nNull counts after fixing:")
     print(cleaned_df.isna().sum())
-    print(f"\nEmpty string counts after fixing:")
+    print("\nEmpty string counts after fixing:")
     for col in cleaned_df.columns:
         empty_count = (cleaned_df[col].astype(str) == '').sum()
         print(f"  {col}: {empty_count}")
     
-    print(f"\nSummary:")
+    print("\nSummary:")
     print(f"  Rows changed: {summary['rows_changed_total']}")
     print(f"  Rows removed: {summary['rows_removed']}")
     print(f"  Columns changed: {summary['per_column_changed']}")

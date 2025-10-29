@@ -13,7 +13,6 @@ Returns:
 from typing import Dict, Any, List, Tuple, Optional
 import re
 import pandas as pd
-import numpy as np
 
 EMAIL_RE = re.compile(r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 
@@ -33,16 +32,21 @@ def _coerce_numeric_if_mostly(ser: pd.Series, threshold: float = 0.8) -> pd.Seri
 
 def _standardize_dates_series(ser: pd.Series) -> pd.Series:
     """
-    Parse a Series of date-like strings and return ISO date strings YYYY-MM-DD or None for unparsable.
+    Parse a Series of date-like strings and return ISO date strings YYYY-MM-DD or empty string for missing.
     Strategy:
+      - Preserve empty strings as empty strings (don't convert to None to avoid reducing completeness score)
       - Use pd.to_datetime(..., infer_datetime_format=True, dayfirst=False)
       - For unparsed entries, retry with dayfirst=True
-      - Keep result as YYYY-MM-DD strings or None
+      - Keep result as YYYY-MM-DD strings or empty string for originally empty values
     """
     if ser is None or ser.shape[0] == 0:
         return ser
-    # normalize obvious null markers
-    raw = ser.replace({"": None, "NA": None, "N/A": None, "null": None, "None": None})
+    
+    # Track which values were originally empty strings to preserve them
+    was_empty = (ser.astype(str) == '')
+    
+    # normalize obvious null markers to None, but keep empty strings separate
+    raw = ser.replace({"NA": None, "N/A": None, "null": None, "None": None})
     # attempt parse (dayfirst False)
     parsed = pd.to_datetime(raw.astype(str), errors="coerce", infer_datetime_format=True, dayfirst=False)
     # retry with dayfirst True for those not parsed
@@ -50,8 +54,11 @@ def _standardize_dates_series(ser: pd.Series) -> pd.Series:
     if mask_not_parsed.any():
         parsed_alt = pd.to_datetime(raw[mask_not_parsed].astype(str), errors="coerce", infer_datetime_format=True, dayfirst=True)
         parsed.loc[mask_not_parsed] = parsed_alt
-    # Final: return YYYY-MM-DD strings, keep None for NaT
-    return parsed.dt.strftime("%Y-%m-%d").where(parsed.notna(), None)
+    # Final: return YYYY-MM-DD strings, preserve empty strings for originally empty values
+    result = parsed.dt.strftime("%Y-%m-%d").where(parsed.notna(), '')
+    # Restore empty strings where the original value was empty (preserves completeness)
+    result = result.where(~was_empty, '')
+    return result
 
 def _guess_date_like_columns(df: pd.DataFrame, issues: List[Dict[str, Any]]) -> List[str]:
     """
@@ -61,7 +68,6 @@ def _guess_date_like_columns(df: pd.DataFrame, issues: List[Dict[str, Any]]) -> 
       - OR have at least 5% parseable values (quick sniff)
     """
     date_cols = set()
-    lower_cols = [c.lower() for c in df.columns]
     for c in df.columns:
         lc = c.lower()
         if any(k in lc for k in ("date", "time", "timestamp", "close", "expected_close")):

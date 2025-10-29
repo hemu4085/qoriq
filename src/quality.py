@@ -134,13 +134,20 @@ def _safety_score(df: pd.DataFrame) -> (float, Dict[str, Any]):
     return float(score), {"per_column": per_column, "total_pii": int(pii_cells), "total_cells": int(total_cells)}
 
 def compute_quality_scores(df: pd.DataFrame, profile: Dict[str, Any] = None, issues: List[Dict[str, Any]] = None) -> Dict[str, Any]:
-    per_col_completeness = _col_completeness(df)
+    # Normalize missing values: convert empty strings to NaN for consistent scoring
+    # This ensures that '' and NaN are treated the same way across all quality metrics
+    df_normalized = df.copy()
+    for col in df_normalized.columns:
+        # Replace empty strings with NaN to ensure consistent missing-value handling
+        df_normalized[col] = df_normalized[col].replace('', np.nan)
+    
+    per_col_completeness = _col_completeness(df_normalized)
     completeness, completeness_detail = _completeness_score(per_col_completeness)
 
-    consistency, consistency_detail = _consistency_score(df)
-    semantic, semantic_detail = _semantic_score(df)
-    joinability, joinability_detail = _joinability_score(df)
-    safety, safety_detail = _safety_score(df)
+    consistency, consistency_detail = _consistency_score(df_normalized)
+    semantic, semantic_detail = _semantic_score(df_normalized)
+    joinability, joinability_detail = _joinability_score(df_normalized)
+    safety, safety_detail = _safety_score(df_normalized)
 
     components = {
         "completeness": {"score": round(float(completeness), 4), "detail": completeness_detail},
