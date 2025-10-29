@@ -31,27 +31,71 @@ def _coerce_numeric_if_mostly(ser: pd.Series, threshold: float = 0.8) -> pd.Seri
         return coerced
     return ser
 
-def _standardize_dates_series(ser: pd.Series) -> pd.Series:
+def _safe_coerce_dates(ser: pd.Series) -> pd.Series:
     """
-    Parse a Series of date-like strings and return ISO date strings YYYY-MM-DD or None for unparsable.
-    Strategy:
-      - Use pd.to_datetime(..., infer_datetime_format=True, dayfirst=False)
-      - For unparsed entries, retry with dayfirst=True
-      - Keep result as YYYY-MM-DD strings or None
+    Safely coerce a Series to date strings, preserving original values when parsing fails.
+    
+    This helper avoids introducing NaN/NaT unnecessarily:
+    - Only attempts to coerce non-empty, non-null strings
+    - Preserves original value when parsing fails (avoids replacing valid text with NaN)
+    - Returns YYYY-MM-DD strings for successfully parsed dates
+    
+    Args:
+        ser: Input pandas Series
+        
+    Returns:
+        Series with parsed dates as YYYY-MM-DD strings, original values preserved for unparseable entries
     """
     if ser is None or ser.shape[0] == 0:
         return ser
-    # normalize obvious null markers
-    raw = ser.replace({"": None, "NA": None, "N/A": None, "null": None, "None": None})
-    # attempt parse (dayfirst False)
-    parsed = pd.to_datetime(raw.astype(str), errors="coerce", infer_datetime_format=True, dayfirst=False)
-    # retry with dayfirst True for those not parsed
-    mask_not_parsed = parsed.isna() & raw.notna()
-    if mask_not_parsed.any():
-        parsed_alt = pd.to_datetime(raw[mask_not_parsed].astype(str), errors="coerce", infer_datetime_format=True, dayfirst=True)
-        parsed.loc[mask_not_parsed] = parsed_alt
-    # Final: return YYYY-MM-DD strings, keep None for NaT
-    return parsed.dt.strftime("%Y-%m-%d").where(parsed.notna(), None)
+    
+    result = ser.copy()
+    
+    # Iterate over each value
+    for idx in ser.index:
+        val = ser[idx]
+        
+        # Skip if already null/None
+        if pd.isna(val):
+            continue
+            
+        # Convert to string
+        val_str = str(val).strip()
+        
+        # Skip if empty string
+        if val_str == '' or val_str.lower() in ('na', 'n/a', 'null', 'none'):
+            result[idx] = np.nan
+            continue
+        
+        # Try to parse the date
+        try:
+            # First try with dayfirst=False
+            parsed = pd.to_datetime(val_str, errors='coerce', dayfirst=False)
+            if pd.notna(parsed):
+                result[idx] = parsed.strftime("%Y-%m-%d")
+                continue
+            
+            # Retry with dayfirst=True
+            parsed = pd.to_datetime(val_str, errors='coerce', dayfirst=True)
+            if pd.notna(parsed):
+                result[idx] = parsed.strftime("%Y-%m-%d")
+                continue
+        except Exception:
+            pass
+        
+        # If parsing failed, preserve the original value (don't replace with NaN)
+        # This is the key difference from aggressive coercion
+        
+    return result
+
+def _standardize_dates_series(ser: pd.Series) -> pd.Series:
+    """
+    Parse a Series of date-like strings using the safer _safe_coerce_dates helper.
+    
+    This avoids introducing NaN/NaT unnecessarily by preserving original values
+    when parsing fails.
+    """
+    return _safe_coerce_dates(ser)
 
 def _guess_date_like_columns(df: pd.DataFrame, issues: List[Dict[str, Any]]) -> List[str]:
     """
@@ -61,7 +105,6 @@ def _guess_date_like_columns(df: pd.DataFrame, issues: List[Dict[str, Any]]) -> 
       - OR have at least 5% parseable values (quick sniff)
     """
     date_cols = set()
-    lower_cols = [c.lower() for c in df.columns]
     for c in df.columns:
         lc = c.lower()
         if any(k in lc for k in ("date", "time", "timestamp", "close", "expected_close")):
@@ -137,8 +180,8 @@ def generate_naive_clean_with_summary(df: pd.DataFrame,
             med = pd.to_numeric(pre_dedupe[c], errors="coerce").median(skipna=True)
             if not pd.isna(med):
                 pre_dedupe[c] = pre_dedupe[c].fillna(med)
-        else:
-            pre_dedupe[c] = pre_dedupe[c].fillna("")
+        # For non-numeric columns, leave NaN as-is instead of filling with empty string
+        # This prevents introducing empty strings that reduce completeness scores
 
     # Apply invalid-email masking
     for c in list(cols_invalid_email):
@@ -147,7 +190,8 @@ def generate_naive_clean_with_summary(df: pd.DataFrame,
         ser = pre_dedupe[c].astype(str)
         mask_has_at = ser.str.contains("@", na=False)
         mask_invalid = mask_has_at & ~ser.apply(_is_valid_email)
-        pre_dedupe.loc[mask_invalid, c] = ""
+        # Use NaN instead of empty string to avoid reducing completeness scores
+        pre_dedupe.loc[mask_invalid, c] = np.nan
 
     # Apply dtype coercion
     for c in list(cols_dtype_mismatch):

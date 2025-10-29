@@ -7,7 +7,6 @@ Run:
   streamlit run app.py
 """
 import os
-import tempfile
 import json
 from typing import Dict, Any, List
 import streamlit as st

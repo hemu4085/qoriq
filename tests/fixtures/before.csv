@@ -1,0 +1,6 @@
+user_id,email,signup_date,age,country,ssn
+1,alice@example.com,2022-01-15,30,US,
+2,bob@example.com,2022-02-20,25,UK,
+3,charlie@example.com,pending,28,CA,
+4,dave@example.com,TBD,35,US,123-45-6789
+5,eve@test.com,2022-05-10,,UK,
