@@ -26,7 +26,7 @@ except Exception:
         total_cells = df_norm.size
         non_missing = df_norm.notna().sum().sum()
         completeness = 100.0 * (non_missing / total_cells) if total_cells > 0 else 100.0
-        unsafe_mask = df_norm.astype(str).applymap(lambda v: v.strip().lower() == "not-a-date")
+        unsafe_mask = df_norm.astype(str).apply(lambda col: col.str.strip().str.lower() == "not-a-date")
         unsafe_count = unsafe_mask.sum().sum()
         safe_count = total_cells - unsafe_count
         safety = 100.0 * (safe_count / total_cells) if total_cells > 0 else 100.0
@@ -63,7 +63,7 @@ def main():
         "quality_before": before_metrics["quality"],
         "quality_after": after_metrics["quality"],
         "completeness_before": before_metrics["completeness"],
-        "completeness_after": before_metrics["completeness"],
+        "completeness_after": after_metrics["completeness"],
         "safety_before": before_metrics["safety"],
         "safety_after": after_metrics["safety"],
     }
