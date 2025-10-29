@@ -125,8 +125,10 @@ def _safety_score(df: pd.DataFrame) -> (float, Dict[str, Any]):
             per_column[c] = {"pii_count": 0, "non_null": 0}
             continue
         email_count = int(ser.apply(lambda s: bool(_email_re.match(s))).sum())
-        # Exclude ISO dates from phone number detection
-        phone_count = int(ser.apply(lambda s: bool(_phone_re.search(s)) and not bool(_iso_date_re.match(s))).sum())
+        # Exclude ISO dates from phone number detection (more efficient with combined check)
+        def is_phone_not_date(s):
+            return _phone_re.search(s) and not _iso_date_re.match(s)
+        phone_count = int(ser.apply(is_phone_not_date).sum())
         ssn_count = int(ser.apply(lambda s: bool(_ssn_re.match(s))).sum())
         col_pii = int(email_count + phone_count + ssn_count)
         pii_cells += col_pii

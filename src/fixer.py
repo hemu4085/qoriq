@@ -16,6 +16,9 @@ import pandas as pd
 
 EMAIL_RE = re.compile(r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 
+# Null markers to normalize during date parsing
+NULL_MARKERS = {"NA", "N/A", "null", "None"}
+
 def _is_valid_email(s: Optional[str]) -> bool:
     if s is None:
         return False
@@ -48,7 +51,9 @@ def _standardize_dates_series(ser: pd.Series) -> pd.Series:
     original = ser.copy()
     
     # Only normalize truly null markers to None (not empty strings from valid data)
-    raw = ser.replace({"NA": None, "N/A": None, "null": None, "None": None})
+    # Convert NULL_MARKERS dict to replacement dict with None values
+    null_replacements = {marker: None for marker in NULL_MARKERS}
+    raw = ser.replace(null_replacements)
     
     # attempt parse (dayfirst False)
     parsed = pd.to_datetime(raw.astype(str), errors="coerce", dayfirst=False)
