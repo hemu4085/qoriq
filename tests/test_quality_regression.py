@@ -11,6 +11,7 @@ Related to: Fix DQ score regression
 """
 import subprocess
 import json
+import sys
 from pathlib import Path
 
 
@@ -26,9 +27,9 @@ def test_quality_regression_with_diagnose_script():
     before_path = repo_root / "tests" / "fixtures" / "before.csv"
     after_path = repo_root / "tests" / "fixtures" / "after.csv"
     
-    # Run diagnose_quality.py with --json flag
+    # Run diagnose_quality.py with --json flag using same Python interpreter
     result = subprocess.run(
-        ["python3", str(script_path), str(before_path), str(after_path), "--json"],
+        [sys.executable, str(script_path), str(before_path), str(after_path), "--json"],
         capture_output=True,
         text=True,
         cwd=str(repo_root)

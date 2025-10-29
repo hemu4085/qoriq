@@ -74,10 +74,12 @@ def _safe_coerce_dates(ser: pd.Series) -> pd.Series:
         parsed.loc[mask_not_parsed] = parsed_alt
     
     # Only update successfully parsed dates; preserve original for unparseable
+    # Use the indexes from parsed to align with result
     mask_successfully_parsed = parsed.notna()
-    if mask_successfully_parsed.any():
+    successfully_parsed_idx = mask_successfully_parsed[mask_successfully_parsed].index
+    if len(successfully_parsed_idx) > 0:
         # Convert successfully parsed dates to YYYY-MM-DD strings
-        result.loc[mask_has_value & mask_successfully_parsed] = parsed[mask_successfully_parsed].dt.strftime("%Y-%m-%d")
+        result.loc[successfully_parsed_idx] = parsed[successfully_parsed_idx].dt.strftime("%Y-%m-%d")
     
     # Unparseable non-empty values remain as original
     return result
