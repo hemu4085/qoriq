@@ -100,7 +100,7 @@ def _date_parse_issues(df: pd.DataFrame) -> List[Dict[str, Any]]:
             sample = ser.dropna().astype(str).head(200)
             if sample.empty:
                 continue
-            parsed = pd.to_datetime(sample, errors="coerce", infer_datetime_format=True)
+            parsed = pd.to_datetime(sample, errors="coerce")
             n_parsed = int(parsed.notna().sum())
             if n_parsed > 0 and n_parsed < len(sample):
                 issues.append({

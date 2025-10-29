@@ -1,0 +1,9 @@
+id,name,email,expected_close
+1,Alice,alice@example.com,2023-01-15
+2,Bob,bob@example.com,2023-02-20
+3,Charlie,charlie@example.com,15/03/2023
+4,Dave,dave@example.com,invalid-date
+5,Eve,eve@example.com,2023-04-05
+6,Frank,frank@example.com,20/06/2023
+7,Grace,grace@example.com,bad-format
+8,Henry,henry@example.com,2023-08-30

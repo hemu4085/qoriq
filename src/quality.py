@@ -18,6 +18,8 @@ import numpy as np
 _email_re = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
 _phone_re = re.compile(r"\+?\d[\d\-\s]{6,}\d")
 _ssn_re = re.compile(r"^\d{3}-\d{2}-\d{4}$")
+# ISO date pattern to exclude from phone number matching
+_iso_date_re = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 def _col_completeness(df: pd.DataFrame) -> Dict[str, float]:
     comp = {}
@@ -78,7 +80,7 @@ def _semantic_score(df: pd.DataFrame) -> (float, Dict[str, Any]):
             per_col[c] = float(valid) / total if total else 1.0
             continue
         if "date" in name or "time" in name or "timestamp" in name:
-            parsed = pd.to_datetime(ser.astype(str), errors="coerce", infer_datetime_format=True)
+            parsed = pd.to_datetime(ser.astype(str), errors="coerce")
             total = len(ser)
             ok = int(parsed.notna().sum())
             per_col[c] = float(ok) / total if total else 1.0
@@ -123,7 +125,8 @@ def _safety_score(df: pd.DataFrame) -> (float, Dict[str, Any]):
             per_column[c] = {"pii_count": 0, "non_null": 0}
             continue
         email_count = int(ser.apply(lambda s: bool(_email_re.match(s))).sum())
-        phone_count = int(ser.apply(lambda s: bool(_phone_re.search(s))).sum())
+        # Exclude ISO dates from phone number detection
+        phone_count = int(ser.apply(lambda s: bool(_phone_re.search(s)) and not bool(_iso_date_re.match(s))).sum())
         ssn_count = int(ser.apply(lambda s: bool(_ssn_re.match(s))).sum())
         col_pii = int(email_count + phone_count + ssn_count)
         pii_cells += col_pii
