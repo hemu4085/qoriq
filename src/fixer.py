@@ -13,7 +13,6 @@ Returns:
 from typing import Dict, Any, List, Tuple, Optional
 import re
 import pandas as pd
-import numpy as np
 
 EMAIL_RE = re.compile(r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 
@@ -31,9 +30,57 @@ def _coerce_numeric_if_mostly(ser: pd.Series, threshold: float = 0.8) -> pd.Seri
         return coerced
     return ser
 
+def _safe_coerce_dates(ser: pd.Series) -> pd.Series:
+    """
+    Parse a Series of date-like strings and return ISO date strings YYYY-MM-DD.
+    Preserves original value when parsing fails to avoid introducing NaN/NaT.
+    
+    Strategy:
+      - Normalize obvious null markers to None
+      - Use pd.to_datetime(..., dayfirst=False) for initial parse
+      - For unparsed entries, retry with dayfirst=True
+      - Keep result as YYYY-MM-DD strings for successfully parsed dates
+      - **PRESERVE ORIGINAL VALUE** for dates that fail to parse (instead of setting to None)
+    """
+    if ser is None or ser.shape[0] == 0:
+        return ser.copy()
+    
+    # Create a copy to avoid modifying original
+    result = ser.copy()
+    
+    # Normalize obvious null markers to None (but keep empty strings as empty)
+    null_markers = {"NA": None, "N/A": None, "null": None, "None": None}
+    result = result.replace(null_markers)
+    
+    # Track which values were originally non-empty and non-null
+    mask_non_empty = result.notna() & (result.astype(str).str.strip() != "")
+    
+    if not mask_non_empty.any():
+        return result
+    
+    # Attempt parse (dayfirst False)
+    parsed = pd.to_datetime(result, errors="coerce", dayfirst=False)
+    
+    # Retry with dayfirst True for those not parsed but still non-empty
+    mask_not_parsed = parsed.isna() & mask_non_empty
+    if mask_not_parsed.any():
+        parsed_alt = pd.to_datetime(result[mask_not_parsed], errors="coerce", dayfirst=True)
+        parsed.loc[mask_not_parsed] = parsed_alt
+    
+    # Only replace values that successfully parsed
+    mask_successfully_parsed = parsed.notna()
+    result.loc[mask_successfully_parsed] = parsed.loc[mask_successfully_parsed].dt.strftime("%Y-%m-%d")
+    
+    # Values that failed to parse remain as their original values (not None)
+    return result
+
 def _standardize_dates_series(ser: pd.Series) -> pd.Series:
     """
     Parse a Series of date-like strings and return ISO date strings YYYY-MM-DD or None for unparsable.
+    
+    DEPRECATED: This function introduces NaN for unparseable dates.
+    Use _safe_coerce_dates instead to preserve original values.
+    
     Strategy:
       - Use pd.to_datetime(..., infer_datetime_format=True, dayfirst=False)
       - For unparsed entries, retry with dayfirst=True
@@ -61,7 +108,6 @@ def _guess_date_like_columns(df: pd.DataFrame, issues: List[Dict[str, Any]]) -> 
       - OR have at least 5% parseable values (quick sniff)
     """
     date_cols = set()
-    lower_cols = [c.lower() for c in df.columns]
     for c in df.columns:
         lc = c.lower()
         if any(k in lc for k in ("date", "time", "timestamp", "close", "expected_close")):
@@ -160,7 +206,7 @@ def generate_naive_clean_with_summary(df: pd.DataFrame,
         if c not in pre_dedupe.columns:
             continue
         try:
-            pre_dedupe[c] = _standardize_dates_series(pre_dedupe[c])
+            pre_dedupe[c] = _safe_coerce_dates(pre_dedupe[c])
         except Exception:
             # on parsing error, leave column unchanged
             pass
