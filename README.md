@@ -10,6 +10,7 @@ Features
 - Naive bulk fixes (median imputation, simple date normalization, basic masking).
 - Preview before applying fixes and export cleaned CSV + manifest.
 - Minimal test suite and CI (GitHub Actions with pytest + ruff).
+- Quality score regression protection: fixes maintain or improve overall DQ score.
 
 Quickstart (Windows PowerShell)
 1. Create and activate a virtual environment
