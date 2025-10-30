@@ -124,7 +124,8 @@ def _compute_timeliness(df_norm: pd.DataFrame) -> float:
         if not mask.any():
             continue
         total_cells += mask.sum()
-        parsed = pd.to_datetime(col[mask], errors="coerce", infer_datetime_format=True)
+        # removed deprecated infer_datetime_format kwarg
+        parsed = pd.to_datetime(col[mask], errors="coerce")
         parsed_count += parsed.notna().sum()
     if total_cells == 0:
         return 100.0
